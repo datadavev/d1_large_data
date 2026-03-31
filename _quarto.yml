@@ -1,0 +1,26 @@
+project:
+  type: website
+
+filters:
+  - diagram
+
+website:
+  title: "Large folder storage"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: vmdag.qmd
+        text: VMDAG
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+    respect-user-color-scheme: true
+    toc: true
+
+
+

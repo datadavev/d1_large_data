@@ -1,0 +1,37 @@
+---
+title: "Large folder storage"
+reference-location: margin
+abstract: |
+  This document outlines the design and implementation of support for working with large datasets in the Metacat and DataONE environments. A dataset is considered "large" if the number of components (files) generally prevents practical interactions (such as viewing in a web browser) with the dataset. 
+---
+
+A dataset in DataONE is generally composed of data files, metadata describing the data, and a resource map that identifies relationships between the dataset components.
+
+The current implementation of the DataONE system and Metacat (a core component of the DataONE system) becomes cumbersome when datasets with moderate (hundreds) and impractical with large (thousands to millions) numbers of components.
+
+Dataset size[^size_def] limitations in the DataONE environment arise from several factors, in particular:
+
+- Use of a resource maps (OREs) to aggregate all the components of a dataset. An ORE is an RDF-XML document, a format that is inherently verbose, and each component in a dataset may be referenced multiple times (e.g. `ore:aggregates`, `ore:isAggregatedBy`, `cito:isDocumentedBy`, `cito:documents`). This leads to creation of very large ORE documents that are especially cumbersome to process in a web browser environment.
+
+- System Metadata for each component. Every component in a dataset has associated system metadata to capture information such as the persistent identifier, component type, size, dates, origin, permissions, and replication status. Large numbers of dataset components means a large number of system metadata documents which must be ingested and managed. 
+
+The primary limitation is the use of ORE documents since these do not scale for describing large datasets. 
+
+Any infrastructure changes must consider implementation and long term maintenance costs.
+
+[^size_def]: "Size" can refer to the number of bytes and/or the number of components in a dataset. This document generally uses size to refer to the number of components in a dataset.
+
+## Recommendations
+
+1. Define a new object type for "folders". A `Folder` object is a container the defines a grouping of files or folders, and is composed of entries that consist of type, name, and hash values for each file or folder. Folder objects are constructed using a Versioned Merkle Directed Acyclic Graph composition pattern. See [Versioned Merkle Directed Acyclic Graph](vmdag.qmd).
+    
+    - Add a new DataONE formatId for `Folder` objects
+    - Define the serialization formate for `Folder` objects (e.g. delimited text, JSON, parquet)
+
+2. Provide libraries in Python, Javascript, and possibly Java for creating and manipulating Folder objects.
+
+3. Support inherited application of system metadata properties. For example, permissions applied to a folder object apply to content.
+
+4. Related to 3., support suffix pass through for identifier resolution. For example, a PID may refer to a folder, and each component in a folder may be referenced using the corresponding path element appended to the PID. 
+
+Items 1 and 2 are high priority and required to support large datasets. Items 3 and 4 are more disruptive to implement, but necessary to scale should large numbers of large datasets need to be managed.
