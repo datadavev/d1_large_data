@@ -370,3 +370,5 @@ dpack commit
 # Uploads the metadata, ORE, dataset files, and Folder objects
 dpack publish
 ```
+
+For this to work with `Folder` storage option 1 in hashstore, the hash algorithm must be identical between the client and the server, and the client must be able to send the individual `Folder` entries to the server.
