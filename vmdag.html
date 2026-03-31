@@ -243,7 +243,7 @@ Figure&nbsp;1: Initial state of VMDAG. The root of the first version is <code>db
 │   └── 1 c880c a2.txt
 └── 0 a058e B
     ├── 1 00e99 b1.csv
-    └── 1 40eb1.csv</code></pre>
+    └── 1 40ebe b2.csv</code></pre>
 </div>
 <div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
 <pre><code>dbc15 0 ad5eb A
@@ -254,7 +254,7 @@ cc08d 1 00e99 b1.csv
 ed44a 0 ad5eb A
 ed44a 0 a058e B
 a058e 1 00e99 b1.csv
-a058e 1 40eb1.csv</code></pre>
+a058e 1 40ebe b2.csv</code></pre>
 </div>
 </div>
 </div>
@@ -265,6 +265,34 @@ Figure&nbsp;2: State of VMDAG after adding a file to folder B. The root of the n
 </div>
 <p>Assuming the bytes of the original content are preserved, the entire state of a version of the folder hierarchy can be retrieved given the hash of the root for the desired version.</p>
 <p>This approach is very efficient for recording changes to the tree, since only the changed folder and its parents need to be recorded. It is especially effective in an object store like <code>hashstore</code> which uses the content hashes to located content.</p>
+<p>As elaborated below, <code>Folder</code> objects in <code>hashstore</code> could be stored as a single document for an entire folder hierarchy or as individual documents for each folder. Stored as individual folder objects, the second example would be:</p>
+<div id="fig-vmdag_2a" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-vmdag_2a-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre><code>          file dbc15 ◄────── PID_1     
+          0 ad5eb A  ────┐             
+    ┌──── 0 cc08d B      │             
+    │                    │             
+    │     file ad5eb ◄───┴──────────┐  
+    │     1 10fbd a1.txt            │  
+    │     1 c880c a2.txt            │  
+    │                               │  
+    └───► file cc08d                │  
+          1 00e99 b1.csv            │  
+                                    │  
+          file ed44a ◄────── PID_2  │  
+          0 ad5eb A  ───────────────┘  
+    ┌──── 0 a058e B                    
+    │                                  
+    └───► file a058e                   
+          1 00e99 b1.csv               
+          1 40ebe b2.csv               </code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vmdag_2a-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: VMDAG as stored in <code>hashstore</code> as individual folder objects. Each folder object is stored as a file with the content hash as the name, and the root folder is referenced by a PID. The previous version of the root folder is retained and can be referenced by its PID.
+</figcaption>
+</figure>
+</div>
 <section id="basic-vmdag-operations" class="level3">
 <h3 class="anchored" data-anchor-id="basic-vmdag-operations">Basic VMDAG operations</h3>
 <dl>
@@ -313,7 +341,7 @@ List the versions in the VMDAG, which is the list of hashes that refer to the hi
 <img src="vmdag_files/mediabag/92d3f8faed4e97fb6c25d4019307b6de2605aeb7.svg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-context-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: System context for large folder storage in DataONE.
+Figure&nbsp;4: System context for large folder storage in DataONE.
 </figcaption>
 </figure>
 </div>
@@ -327,7 +355,7 @@ Figure&nbsp;3: System context for large folder storage in DataONE.
 <img src="vmdag_files/mediabag/cbd023b15828cf33df2f95833550bba9a02b44a4.svg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-metacat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Basic elements of a Metacat application instance. Hashstore is where components of a dataset are stored.
+Figure&nbsp;5: Basic elements of a Metacat application instance. Hashstore is where components of a dataset are stored.
 </figcaption>
 </figure>
 </div>
@@ -343,7 +371,7 @@ Figure&nbsp;4: Basic elements of a Metacat application instance. Hashstore is wh
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hashstore-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Internal folder composition of a hashstore.
+Figure&nbsp;6: Internal folder composition of a hashstore.
 </figcaption>
 </figure>
 </div>
@@ -365,7 +393,7 @@ Figure&nbsp;5: Internal folder composition of a hashstore.
 <img src="vmdag_files/mediabag/00ce77294b9eee665b3ec96d805724c3a270929f.svg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-metacatui-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6: Users may view and edit datasets using the Metacat UI web application with highly constrained resources. A user may want to navigate a large dataset containing millions of files and edit the dataset by adding files.
+Figure&nbsp;7: Users may view and edit datasets using the Metacat UI web application with highly constrained resources. A user may want to navigate a large dataset containing millions of files and edit the dataset by adding files.
 </figcaption>
 </figure>
 </div>
@@ -392,7 +420,7 @@ Figure&nbsp;6: Users may view and edit datasets using the Metacat UI web applica
 │   └── 1 c880c a2.txt
 └── 0 a058e B  **
     ├── 1 00e99 b1.csv
-    └── 1 40eb1.csv  **</code></pre>
+    └── 1 40ebe b2.csv  **</code></pre>
 </div>
 <div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
 <pre><code>dbc15 0 ad5eb A
@@ -403,12 +431,12 @@ cc08d 1 00e99 b1.csv
 ed44a 0 ad5eb A         **
 ed44a 0 a058e B         **
 a058e 1 00e99 b1.csv    **
-a058e 1 40eb1.csv       **</code></pre>
+a058e 1 40ebe b2.csv    **</code></pre>
 </div>
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vmdag_3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7: A browser client can efficiently alter a VMDAG folder presentation since only the changes (denoted by “<code>**</code>”) need to be propagated to the origin. In this case, adding a file to folder B means tha the file <code>b2.csv</code> and the four new entries in the VMDAG need to be uploaded.
+Figure&nbsp;8: A browser client can efficiently alter a VMDAG folder presentation since only the changes (denoted by “<code>**</code>”) need to be propagated to the origin. In this case, adding a file to folder B means tha the file <code>b2.csv</code> and the four new entries in the VMDAG need to be uploaded.
 </figcaption>
 </figure>
 </div>
@@ -421,7 +449,7 @@ Figure&nbsp;7: A browser client can efficiently alter a VMDAG folder presentatio
 <img src="vmdag_files/mediabag/30be6d360c1045ae7c2e63272b674023f4a45d8c.svg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-datapack-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;8: A heavy client may create and mutate very large datasets containing millions of files. The dataset needs to be efficiently uploaded to Metacat and changes efficiently propagated.
+Figure&nbsp;9: A heavy client may create and mutate very large datasets containing millions of files. The dataset needs to be efficiently uploaded to Metacat and changes efficiently propagated.
 </figcaption>
 </figure>
 </div>
@@ -434,26 +462,26 @@ Figure&nbsp;8: A heavy client may create and mutate very large datasets containi
 </ol>
 <p>Recommendation is to implement option 1 and extend to option 2 when needed.</p>
 <p>Core operations of a command line client may be conceptually similar to a <code>git</code> session. For example using a cli called “dpack”:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create framework for managing a dataset identified by the PID dataset_PID. Creates</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># an ORE document and initializes tracking components for the vmdag. Sets up a</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># default system metadata template for components.</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> init dataset_PID</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Add a metadata document with identifier PID. Adds to the ORE</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> add metadata.xml PID</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Register a folder as a dataset component identified by ds_PID</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> add folder_name ds_PID</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Adds relationship in ORE</span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> relation PID documents ds_PID</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a version. Generates the VMDAG Folder objects.</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> commit</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Push the package to member node</span></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Uploads the metadata, ORE, dataset files, and Folder objects</span></span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> publish</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create framework for managing a dataset identified by the PID dataset_PID. Creates</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># an ORE document and initializes tracking components for the vmdag. Sets up a</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># default system metadata template for components.</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> init dataset_PID</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Add a metadata document with identifier PID. Adds to the ORE</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> add metadata.xml PID</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Register a folder as a dataset component identified by ds_PID</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> add folder_name ds_PID</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Adds relationship in ORE</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> relation PID documents ds_PID</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a version. Generates the VMDAG Folder objects.</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> commit</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Push the package to member node</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Uploads the metadata, ORE, dataset files, and Folder objects</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> publish</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>
