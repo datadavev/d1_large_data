@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.36">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Versioned Merkle Directed Acyclic Graph – Large folder storage</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-158031087360bce0ff56dc785ce39e06.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Large folder storage</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./vmdag.html" aria-current="page"> 
+<span class="menu-text">VMDAG</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#basic-vmdag-operations" id="toc-basic-vmdag-operations" class="nav-link active" data-scroll-target="#basic-vmdag-operations">Basic VMDAG operations</a></li>
+  <li><a href="#context" id="toc-context" class="nav-link" data-scroll-target="#context">Context</a></li>
+  <li><a href="#storing-folders-in-hashstore-using-vmdags" id="toc-storing-folders-in-hashstore-using-vmdags" class="nav-link" data-scroll-target="#storing-folders-in-hashstore-using-vmdags">Storing folders in <code>hashstore</code> using VMDAGs</a></li>
+  <li><a href="#manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser" id="toc-manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser" class="nav-link" data-scroll-target="#manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser">Manipulating a folder hierarchy using a light weight client such as a browser</a></li>
+  <li><a href="#manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server" id="toc-manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server" class="nav-link" data-scroll-target="#manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server">Manipulating a folder hierarchy using a heavy client from a desktop or server</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Versioned Merkle Directed Acyclic Graph</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+<div>
+  <div class="abstract">
+    <div class="block-title">Abstract</div>
+    This document describes implementation considerations for the use of versioned merkle trees for representing Folders in the Metacat / DataONE environment.
+  </div>
+</div>
+
+
+</header>
+
+
+<p>A folder structure is a directed acyclic graph (DAG), with nodes being either files or folders, and file paths identifying relationships. A <a href="https://en.wikipedia.org/wiki/Merkle_tree">Merkle Tree</a> is a DAG with each leaf (file) labelled by a hash, and each non-leaf node (folder) labelled with the hash of the hashes it references. Computing a Merkle tree requires a depth first traversal of the folder hierarchy, computing the hashes of the folder contents, and computing the hash of the folder as the hash of its contained files or folders.</p>
+<div id="fig-vmdag_1" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-vmdag_1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<pre><code>PID_1
+├── A
+│   ├── a1.txt
+│   └── a2.txt
+└── B
+    └── b1.csv</code></pre>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<pre><code>0 dbc15 .
+├── 0 ad5eb A
+│   ├── 1 10fbd a1.txt
+│   └── 1 c880c a2.txt
+└── 0 cc08d B
+    └── 1 00e99 b1.csv</code></pre>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<pre><code>dbc15 0 ad5eb A
+dbc15 0 cc08d B
+ad5eb 1 10fbd a1.txt
+ad5eb 1 c880c a2.txt
+cc08d 1 00e99 b1.csv</code></pre>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vmdag_1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Initial state of VMDAG. The root of the first version is <code>dbc15</code>.
+</figcaption>
+</figure>
+</div>
+<p>A change to a folder hierarchy means that the hashes of the changed component and its parents are computed, resulting in a new hash for the root and the folders leading to the changed element.</p>
+<div id="fig-vmdag_2" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-vmdag_2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<pre><code>PID_1
+├── A
+│   ├── a1.txt
+│   └── a2.txt
+└── B
+    ├── b1.csv
+    └── b2.csv</code></pre>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<pre><code>0 ed44a .
+├── 0 ad5eb A
+│   ├── 1 10fbd a1.txt
+│   └── 1 c880c a2.txt
+└── 0 a058e B
+    ├── 1 00e99 b1.csv
+    └── 1 40eb1.csv</code></pre>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<pre><code>dbc15 0 ad5eb A
+dbc15 0 cc08d B
+ad5eb 1 10fbd a1.txt
+ad5eb 1 c880c a2.txt
+cc08d 1 00e99 b1.csv
+ed44a 0 ad5eb A
+ed44a 0 a058e B
+a058e 1 00e99 b1.csv
+a058e 1 40eb1.csv</code></pre>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vmdag_2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: State of VMDAG after adding a file to folder B. The root of the new version is <code>ed44a</code>. The previous version is retained, with only changes being recorded.
+</figcaption>
+</figure>
+</div>
+<p>Assuming the bytes of the original content are preserved, the entire state of a version of the folder hierarchy can be retrieved given the hash of the root for the desired version.</p>
+<p>This approach is very efficient for recording changes to the tree, since only the changed folder and its parents need to be recorded. It is especially effective in an object store like <code>hashstore</code> which uses the content hashes to located content.</p>
+<section id="basic-vmdag-operations" class="level3">
+<h3 class="anchored" data-anchor-id="basic-vmdag-operations">Basic VMDAG operations</h3>
+<dl>
+<dt><code>store_folder(path)-&gt;list[FolderEntry]</code></dt>
+<dd>
+Recursively compute the list of Merkle tree entries that represent the folder hierarchy.
+</dd>
+<dt><code>retrieve_folder(hash) -&gt; list[Path]</code></dt>
+<dd>
+Given the hash of a folder (e.g.&nbsp;the root), recursively retrieve the labels (paths) for the entries.
+</dd>
+<dt><code>add(hash, path) -&gt; list[FolderEntry]</code></dt>
+<dd>
+Add a file or folder to the hierarchy identified by hash. Returns the list of generated entries.
+</dd>
+<dt><code>delete(hash, path) -&gt; list[FolderEntry]</code></dt>
+<dd>
+Remove a file or folder to the hierarchy identified by hash. Returns the list of generated entries.
+</dd>
+<dt><code>move(hash, path1, path2) -&gt; list[FolderEntry]</code></dt>
+<dd>
+Move a file or folder in the hierarchy identified by hash to a new location, includes renaming a file or folder. Returns the list of generated entries.
+</dd>
+<dt><code>apply_changes(version, changes:list[change])-&gt;list[FolderEntry]</code></dt>
+<dd>
+Apply a set of changes to a version of the VMDAG. Changes include <code>add</code>, <code>delete</code>, and <code>move</code>. The result of applying a set of changes is a list of new entries. The recursive changes can be bundled so a number of changes can be made efficiently even on very large folder hierarchies, resulting in a single new version.
+</dd>
+<dt><code>list_versions() -&gt; list[hash]</code></dt>
+<dd>
+List the versions in the VMDAG, which is the list of hashes that refer to the hierarchy root.
+</dd>
+</dl>
+<p><code>FolderEntry</code> is a structure with four elements:</p>
+<pre><code>class FolderEntry:
+    ftype: int
+    name: str
+    hash: str
+    folder_hash: str</code></pre>
+<p>For files, <code>ftype</code> = 1 and <code>hash</code> is the computed hash of the content. For folders, <code>ftype</code> = 0 and <code>hash</code> is the hash value computed from the list of entries in the folder, sorted by <code>ftype</code> and <code>name</code>. The <code>folder_hash</code> value is the hash of the containing folder, which is computed after the entries for the folder are known.</p>
+</section>
+<section id="context" class="level2">
+<h2 class="anchored" data-anchor-id="context">Context</h2>
+<div id="fig-context" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-context-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="vmdag_files/mediabag/92d3f8faed4e97fb6c25d4019307b6de2605aeb7.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-context-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: System context for large folder storage in DataONE.
+</figcaption>
+</figure>
+</div>
+<p>The implementation of VMDAGs is considered within the context of the DataONE and Metacat environment.</p>
+</section>
+<section id="storing-folders-in-hashstore-using-vmdags" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="storing-folders-in-hashstore-using-vmdags">Storing folders in <code>hashstore</code> using VMDAGs</h2>
+<div id="fig-metacat" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-metacat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="vmdag_files/mediabag/cbd023b15828cf33df2f95833550bba9a02b44a4.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-metacat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Basic elements of a Metacat application instance. Hashstore is where components of a dataset are stored.
+</figcaption>
+</figure>
+</div>
+<p>In <code>hashstore</code>, individual files are stored in files named by their content hash (CID), with additional files storing the association between persistent identifiers (PIDs) and corresponding CIDs. Multiple PIDs may reference a single CID. Content is immutable, and the hash store is only added to.</p>
+<div id="fig-hashstore" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-hashstore-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hashstore_layout.svg" class="img-fluid figure-img"></p>
+<figcaption>Hashstore</figcaption>
+</figure>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hashstore-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Internal folder composition of a hashstore.
+</figcaption>
+</figure>
+</div>
+<p>A VMDAG can be stored in <code>hashstore</code> in two different ways without modification of the <code>hashstore</code> operations:</p>
+<ol type="1">
+<li>by storing individual folders as files.</li>
+<li>bundling the entries for a folder hierarchy into a single file.</li>
+</ol>
+<p>Option 1 allows re-use of subfolder hierarchies between datasets<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> and requires consistent serialization of the folder objects (since the hash of the file itself is used as the <code>folder_hash</code> value). It does not allow for additional properties to be stored in the folder objects.</p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;Any hash within the merkle tree may be referenced, meaning any subfolder may have a PID.</p></div></div><p>Option 2 captures an entire hierarchy in a single file, may contain multiple revisions of a folder, and may contain additional properties for each entry. It does not (easily) allow for re-use of existing folder hierarchies.</p>
+<p>Option 1 is probably preferable, especially if reuse of large static hierarchies is a goal.</p>
+<p>Storage of large folder hierarchies with potentially millions of files will have significant operational implications if corresponding PIDs and System Metadata are required for each object. To avoid such a “PIDplosion”, mechanisms for blob storage in hash store should be considered, where objects may have a CID only and perhaps inherit properties from a shared system metadata document or perhaps from statements in a resource map.</p>
+</section>
+<section id="manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser" class="level2">
+<h2 class="anchored" data-anchor-id="manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser">Manipulating a folder hierarchy using a light weight client such as a browser</h2>
+<div id="fig-metacatui" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-metacatui-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="vmdag_files/mediabag/00ce77294b9eee665b3ec96d805724c3a270929f.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-metacatui-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Users may view and edit datasets using the Metacat UI web application with highly constrained resources. A user may want to navigate a large dataset containing millions of files and edit the dataset by adding files.
+</figcaption>
+</figure>
+</div>
+<p>Assuming content is being accessed from a <code>hashstore</code> using option 1 for VMDAG storage, a browser client may read a folder hierarchy by retrieving the top level folder (identified by a PID), an recursing into the folder hierarchy as desired. A browser client will typically only show a small portion of a large folder hierarchy, and so the number of request to retrieve the information will be limited (essentially retrieving the relevant subfolder entries).</p>
+<p>A browser client has the benefit of complete control over “file system” semantics, since content is sandboxed and requires client facing API operations for manipulation. A client may mutate an existing folder hierarchy through atomic <code>add</code>, <code>delete</code>, and <code>move</code> operations, or preferably by <code>apply_changes</code> to bundle the changes to create the new version. In addition to any files added, the bundled operation will result in several folder objects (one for each level from the altered leaf to the root) being uploaded to hash store and a single new PID for the root.</p>
+<p>While the <code>apply_changes</code> operation could be implemented on the server side, it can be also done efficiently client side since all the information necessary to compute the new folder objects (i.e.&nbsp;the folder objects between root and the altered leaf / leaves) was already retrieved by the client.</p>
+<div id="fig-vmdag_3" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-vmdag_3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<pre><code>PID_1
+├── A
+│   ├── a1.txt
+│   └── a2.txt
+└── B
+    ├── b1.csv
+    └── b2.csv  **</code></pre>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<pre><code>0 ed44a .  **
+├── 0 ad5eb A
+│   ├── 1 10fbd a1.txt
+│   └── 1 c880c a2.txt
+└── 0 a058e B  **
+    ├── 1 00e99 b1.csv
+    └── 1 40eb1.csv  **</code></pre>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<pre><code>dbc15 0 ad5eb A
+dbc15 0 cc08d B
+ad5eb 1 10fbd a1.txt
+ad5eb 1 c880c a2.txt
+cc08d 1 00e99 b1.csv
+ed44a 0 ad5eb A         **
+ed44a 0 a058e B         **
+a058e 1 00e99 b1.csv    **
+a058e 1 40eb1.csv       **</code></pre>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vmdag_3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: A browser client can efficiently alter a VMDAG folder presentation since only the changes (denoted by “<code>**</code>”) need to be propagated to the origin. In this case, adding a file to folder B means tha the file <code>b2.csv</code> and the four new entries in the VMDAG need to be uploaded.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server" class="level2">
+<h2 class="anchored" data-anchor-id="manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server">Manipulating a folder hierarchy using a heavy client from a desktop or server</h2>
+<div id="fig-datapack" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-datapack-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="vmdag_files/mediabag/30be6d360c1045ae7c2e63272b674023f4a45d8c.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-datapack-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: A heavy client may create and mutate very large datasets containing millions of files. The dataset needs to be efficiently uploaded to Metacat and changes efficiently propagated.
+</figcaption>
+</figure>
+</div>
+<p>A desktop or server client has direct access to the file system and presumably the entire original folder hierarchy (or may retrieve it). In such environments, multiple processes may alter folder and file content in ways without any knowledge of the associated VMDAG. There are multiple options for tracking file and folder mutation for updating a VMDAG:</p>
+<ol type="1">
+<li><p>Recompute the MDAG for each version. The simplest approach which would be fine for relatively small hierarchies (hundreds of files), but could get expensive as the managed hierarchy grows.</p></li>
+<li><p>File tagging. Each file and folder can be assigned a persistent unique identifier (like a SID in DataONE) as an extended attribute. The xattr will remain attached to the file through mutations and moves, and could thus provide the basis for computing the change operations for a new MDAG version.</p></li>
+<li><p>File system hooks. Requires file system level operations to trigger additional calls to perform corresponding VMDAG operations. This could be implemented in FUSE for example, but cross platform implementation may be more involved (e.g.&nbsp;FUSE for linux, MacOS; WinFsp for Windows).</p></li>
+<li><p>Watcher. A file system watcher such as <code>watchdog</code> can be efficient and work cross platform, though changes that occurred when the watch service was not running would be missed, and so would require a complete recalculation of the folder hierarchy which could be expensive for large hierarchies.</p></li>
+</ol>
+<p>Recommendation is to implement option 1 and extend to option 2 when needed.</p>
+<p>Core operations of a command line client may be conceptually similar to a <code>git</code> session. For example using a cli called “dpack”:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create framework for managing a dataset identified by the PID dataset_PID. Creates</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># an ORE document and initializes tracking components for the vmdag. Sets up a</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># default system metadata template for components.</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> init dataset_PID</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Add a metadata document with identifier PID. Adds to the ORE</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> add metadata.xml PID</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Register a folder as a dataset component identified by ds_PID</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> add folder_name ds_PID</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Adds relationship in ORE</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> relation PID documents ds_PID</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a version. Generates the VMDAG Folder objects.</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> commit</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Push the package to member node</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Uploads the metadata, ORE, dataset files, and Folder objects</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> publish</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+
+
+</section>
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/datadavev\.github\.io\/d1_large_data\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
