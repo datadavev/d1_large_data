@@ -484,6 +484,7 @@ Figure&nbsp;9: A heavy client may create and mutate very large datasets containi
 <span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Push the package to member node</span></span>
 <span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Uploads the metadata, ORE, dataset files, and Folder objects</span></span>
 <span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="ex">dpack</span> publish</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>For this to work with <code>Folder</code> storage option 1 in hashstore, the hash algorithm must be identical between the client and the server, and the client must be able to send the individual <code>Folder</code> entries to the server.</p>
 
 
 </section>
