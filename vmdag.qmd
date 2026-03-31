@@ -58,7 +58,7 @@ PID_1
 │   └── 1 c880c a2.txt
 └── 0 a058e B
     ├── 1 00e99 b1.csv
-    └── 1 40eb1.csv
+    └── 1 40ebe b2.csv
 ```
 
 ```
@@ -70,7 +70,7 @@ cc08d 1 00e99 b1.csv
 ed44a 0 ad5eb A
 ed44a 0 a058e B
 a058e 1 00e99 b1.csv
-a058e 1 40eb1.csv
+a058e 1 40ebe b2.csv
 ```
 
 State of VMDAG after adding a file to folder B. The root of the new version is `ed44a`. The previous version is retained, with only changes being recorded.
@@ -79,6 +79,36 @@ State of VMDAG after adding a file to folder B. The root of the new version is `
 Assuming the bytes of the original content are preserved, the entire state of a version of the folder hierarchy can be retrieved given the hash of the root for the desired version. 
 
 This approach is very efficient for recording changes to the tree, since only the changed folder and its parents need to be recorded. It is especially effective in an object store like `hashstore` which uses the content hashes to located content.
+
+As elaborated below, `Folder` objects in `hashstore` could be stored as a single document for an entire folder hierarchy or as individual documents for each folder. Stored as individual folder objects, the second example would be:
+
+::: {#fig-vmdag_2a}
+
+```
+          file dbc15 ◄────── PID_1     
+          0 ad5eb A  ────┐             
+    ┌──── 0 cc08d B      │             
+    │                    │             
+    │     file ad5eb ◄───┴──────────┐  
+    │     1 10fbd a1.txt            │  
+    │     1 c880c a2.txt            │  
+    │                               │  
+    └───► file cc08d                │  
+          1 00e99 b1.csv            │  
+                                    │  
+          file ed44a ◄────── PID_2  │  
+          0 ad5eb A  ───────────────┘  
+    ┌──── 0 a058e B                    
+    │                                  
+    └───► file a058e                   
+          1 00e99 b1.csv               
+          1 40ebe b2.csv               
+```
+
+VMDAG as stored in `hashstore` as individual folder objects. Each folder object is stored as a file with the content hash as the name, and the root folder is referenced by a PID. The previous version of the root folder is retained and can be referenced by its PID.
+
+:::
+
 
 ### Basic VMDAG operations
 
@@ -252,7 +282,7 @@ PID_1
 │   └── 1 c880c a2.txt
 └── 0 a058e B  **
     ├── 1 00e99 b1.csv
-    └── 1 40eb1.csv  **
+    └── 1 40ebe b2.csv  **
 ```
 
 ```
@@ -264,7 +294,7 @@ cc08d 1 00e99 b1.csv
 ed44a 0 ad5eb A         **
 ed44a 0 a058e B         **
 a058e 1 00e99 b1.csv    **
-a058e 1 40eb1.csv       **
+a058e 1 40ebe b2.csv    **
 ```
 
 A browser client can efficiently alter a VMDAG folder presentation since only the changes (denoted by "`**`") need to be propagated to the origin. In this case, adding a file to folder B means tha the file `b2.csv` and the four new entries in the VMDAG need to be uploaded.
