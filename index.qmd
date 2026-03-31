@@ -7,7 +7,7 @@ abstract: |
 
 A dataset in DataONE is generally composed of data files, metadata describing the data, and a resource map that identifies relationships between the dataset components.
 
-The current implementation of the DataONE system and Metacat (a core component of the DataONE system) becomes cumbersome when datasets with moderate (hundreds) and impractical with large (thousands to millions) numbers of components.
+The current implementation of the DataONE system and Metacat (a core component of the DataONE system) becomes cumbersome when datasets with moderate (thousands) and impractical with large (tens of thousands to millions) of components[^large].
 
 Dataset size[^size_def] limitations in the DataONE environment arise from several factors, in particular:
 
@@ -19,7 +19,9 @@ The primary limitation is the use of ORE documents since these do not scale for 
 
 Any infrastructure changes must consider implementation and long term maintenance costs.
 
-[^size_def]: "Size" can refer to the number of bytes and/or the number of components in a dataset. This document generally uses size to refer to the number of components in a dataset.
+[^large]: A "large" dataset is one with a number of components that prevents practical interactions with the dataset, such as viewing in a web browser. Generally, datasets with tens of thousands of components or more may be considered large in this context.
+
+[^size_def]: "Size" can refer to the number of bytes and/or the number of components in a dataset. This document generally uses size to refer to the number of components in a dataset. 
 
 ## Recommendations
 
@@ -27,8 +29,9 @@ Any infrastructure changes must consider implementation and long term maintenanc
     
     - Add a new DataONE formatId for `Folder` objects
     - Define the serialization formate for `Folder` objects (e.g. delimited text, JSON, parquet)
+    - ORE documents can be used to reference `Folder` objects, and `Folder` objects can be used to reference files and other `Folder` objects. This allows for the use of ORE documents to reference large datasets without the need to include all components in the ORE document itself. It implies though, that components of a `Folder` need to be referenceable by an identifier. One approach may be to use PID for the root `Folder` and path semantics appended to the PID to reference components.
 
-2. Provide libraries in Python, Javascript, and possibly Java for creating and manipulating Folder objects.
+2. Provide libraries in Python, Javascript, and possibly R and Java for creating and manipulating Folder objects. A command line client should be considered a high priority.
 
 3. Support inherited application of system metadata properties. For example, permissions applied to a folder object apply to content.
 
