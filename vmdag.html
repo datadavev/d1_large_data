@@ -154,7 +154,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#basic-vmdag-operations" id="toc-basic-vmdag-operations" class="nav-link active" data-scroll-target="#basic-vmdag-operations">Basic VMDAG operations</a></li>
   <li><a href="#context" id="toc-context" class="nav-link" data-scroll-target="#context">Context</a></li>
   <li><a href="#storing-folders-in-hashstore-using-vmdags" id="toc-storing-folders-in-hashstore-using-vmdags" class="nav-link" data-scroll-target="#storing-folders-in-hashstore-using-vmdags">Storing folders in <code>hashstore</code> using VMDAGs</a></li>
-  <li><a href="#manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser" id="toc-manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser" class="nav-link" data-scroll-target="#manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser">Manipulating a folder hierarchy using a light weight client such as a browser</a></li>
+  <li><a href="#manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser" id="toc-manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser" class="nav-link" data-scroll-target="#manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser">Manipulating a folder hierarchy using a light-weight client such as a browser</a></li>
   <li><a href="#manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server" id="toc-manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server" class="nav-link" data-scroll-target="#manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server">Manipulating a folder hierarchy using a heavy client from a desktop or server</a></li>
   </ul>
 </nav>
@@ -218,7 +218,7 @@ cc08d 1 00e99 b1.csv</code></pre>
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vmdag_1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Initial state of VMDAG. The root of the first version is <code>dbc15</code>.
+Figure&nbsp;1: Initial state of VMDAG. The root of the first version is <code>dbc15</code> referenced by <code>PID_1</code>.
 </figcaption>
 </figure>
 </div>
@@ -228,7 +228,7 @@ Figure&nbsp;1: Initial state of VMDAG. The root of the first version is <code>db
 <div aria-describedby="fig-vmdag_2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="quarto-layout-row">
 <div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
-<pre><code>PID_1
+<pre><code>PID_2
 ├── A
 │   ├── a1.txt
 │   └── a2.txt
@@ -237,7 +237,7 @@ Figure&nbsp;1: Initial state of VMDAG. The root of the first version is <code>db
     └── b2.csv</code></pre>
 </div>
 <div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
-<pre><code>0 ed44a .
+<pre><code>0 ed44a .    
 ├── 0 ad5eb A
 │   ├── 1 10fbd a1.txt
 │   └── 1 c880c a2.txt
@@ -259,12 +259,12 @@ a058e 1 40ebe b2.csv</code></pre>
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vmdag_2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: State of VMDAG after adding a file to folder B. The root of the new version is <code>ed44a</code>. The previous version is retained, with only changes being recorded.
+Figure&nbsp;2: State of VMDAG after adding a file to folder B. The root of the new version is <code>ed44a</code> which is referenced by <code>PID_2</code>. The previous version is retained, with only changes being recorded.
 </figcaption>
 </figure>
 </div>
-<p>Assuming the bytes of the original content are preserved, the entire state of a version of the folder hierarchy can be retrieved given the hash of the root for the desired version.</p>
-<p>This approach is very efficient for recording changes to the tree, since only the changed folder and its parents need to be recorded. It is especially effective in an object store like <code>hashstore</code> which uses the content hashes to located content.</p>
+<p>Assuming the bytes of the original content are preserved, the entire state of a version of the folder hierarchy can be retrieved given the hash of the root for the desired version, i.e.&nbsp;by resolving <code>PID_1</code> or <code>PID_2</code>.</p>
+<p>This approach is very efficient for recording changes to the tree, since only the changed folder and its parents need to be recorded. It is especially effective in an object store like <code>hashstore</code> which uses the content hashes to locate content.</p>
 <p>As elaborated below, <code>Folder</code> objects in <code>hashstore</code> could be stored as a single document for an entire folder hierarchy or as individual documents for each folder. Stored as individual folder objects, the second example would be:</p>
 <div id="fig-vmdag_2a" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -298,7 +298,7 @@ Figure&nbsp;3: VMDAG as stored in <code>hashstore</code> as individual folder ob
 <dl>
 <dt><code>store_folder(path)-&gt;list[FolderEntry]</code></dt>
 <dd>
-Recursively compute the list of Merkle tree entries that represent the folder hierarchy.
+Recursively compute the list of Merkle tree entries that represent the folder hierarchy. This will be a depth first traversal of the folder hierarchy, computing the hash for each file and folder, and returning a list of entries with the format described below. The hash for each folder is computed from the list of entries for that folder, sorted by <code>ftype</code> and <code>name</code>. The hash for each file is computed from the content of the file. The root folder will be the last entry in the list.
 </dd>
 <dt><code>retrieve_folder(hash) -&gt; list[Path]</code></dt>
 <dd>
@@ -331,7 +331,7 @@ List the versions in the VMDAG, which is the list of hashes that refer to the hi
     name: str
     hash: str
     folder_hash: str</code></pre>
-<p>For files, <code>ftype</code> = 1 and <code>hash</code> is the computed hash of the content. For folders, <code>ftype</code> = 0 and <code>hash</code> is the hash value computed from the list of entries in the folder, sorted by <code>ftype</code> and <code>name</code>. The <code>folder_hash</code> value is the hash of the containing folder, which is computed after the entries for the folder are known.</p>
+<p><code>ftype</code> is a constant that indicates the type of the entry. For files, <code>ftype</code> = 1 and <code>hash</code> is the computed hash of the content. For folders, <code>ftype</code> = 0 and <code>hash</code> is the hash value computed from the list of entries in the folder, sorted by <code>ftype</code> and <code>name</code>. The <code>folder_hash</code> value is the hash of the containing folder, which is computed after the entries for the folder are known.</p>
 </section>
 <section id="context" class="level2">
 <h2 class="anchored" data-anchor-id="context">Context</h2>
@@ -371,7 +371,7 @@ Figure&nbsp;5: Basic elements of a Metacat application instance. Hashstore is wh
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hashstore-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6: Internal folder composition of a hashstore.
+Figure&nbsp;6: Internal composition of a hashstore.
 </figcaption>
 </figure>
 </div>
@@ -383,10 +383,11 @@ Figure&nbsp;6: Internal folder composition of a hashstore.
 <p>Option 1 allows re-use of subfolder hierarchies between datasets<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> and requires consistent serialization of the folder objects (since the hash of the file itself is used as the <code>folder_hash</code> value). It does not allow for additional properties to be stored in the folder objects.</p>
 <div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;Any hash within the merkle tree may be referenced, meaning any subfolder may have a PID.</p></div></div><p>Option 2 captures an entire hierarchy in a single file, may contain multiple revisions of a folder, and may contain additional properties for each entry. It does not (easily) allow for re-use of existing folder hierarchies.</p>
 <p>Option 1 is probably preferable, especially if reuse of large static hierarchies is a goal.</p>
+<p>When generating the individual <code>Folder</code> files for option 1, it is critical that the serialization of the folder objects is consistent, since the hash of the file itself is used as the <code>folder_hash</code> value. This means that the entries for a folder must be sorted by <code>ftype</code> and <code>name</code> before being serialized, and that the serialization format must be deterministic (e.g.&nbsp;JSON with sorted keys).</p>
 <p>Storage of large folder hierarchies with potentially millions of files will have significant operational implications if corresponding PIDs and System Metadata are required for each object. To avoid such a “PIDplosion”, mechanisms for blob storage in hash store should be considered, where objects may have a CID only and perhaps inherit properties from a shared system metadata document or perhaps from statements in a resource map.</p>
 </section>
 <section id="manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser" class="level2">
-<h2 class="anchored" data-anchor-id="manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser">Manipulating a folder hierarchy using a light weight client such as a browser</h2>
+<h2 class="anchored" data-anchor-id="manipulating-a-folder-hierarchy-using-a-light-weight-client-such-as-a-browser">Manipulating a folder hierarchy using a light-weight client such as a browser</h2>
 <div id="fig-metacatui" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-metacatui-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -400,6 +401,7 @@ Figure&nbsp;7: Users may view and edit datasets using the Metacat UI web applica
 <p>Assuming content is being accessed from a <code>hashstore</code> using option 1 for VMDAG storage, a browser client may read a folder hierarchy by retrieving the top level folder (identified by a PID), an recursing into the folder hierarchy as desired. A browser client will typically only show a small portion of a large folder hierarchy, and so the number of request to retrieve the information will be limited (essentially retrieving the relevant subfolder entries).</p>
 <p>A browser client has the benefit of complete control over “file system” semantics, since content is sandboxed and requires client facing API operations for manipulation. A client may mutate an existing folder hierarchy through atomic <code>add</code>, <code>delete</code>, and <code>move</code> operations, or preferably by <code>apply_changes</code> to bundle the changes to create the new version. In addition to any files added, the bundled operation will result in several folder objects (one for each level from the altered leaf to the root) being uploaded to hash store and a single new PID for the root.</p>
 <p>While the <code>apply_changes</code> operation could be implemented on the server side, it can be also done efficiently client side since all the information necessary to compute the new folder objects (i.e.&nbsp;the folder objects between root and the altered leaf / leaves) was already retrieved by the client.</p>
+<p>This requires that a client be able to send the individual <code>Folder</code> entries to the server if Option 1 is used for VMDAG storage, or the entire VMDAG if Option 2 is used for VMDAG storage.</p>
 <div id="fig-vmdag_3" class="quarto-layout-panel">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-vmdag_3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -441,7 +443,7 @@ Figure&nbsp;8: A browser client can efficiently alter a VMDAG folder presentatio
 </figure>
 </div>
 </section>
-<section id="manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server" class="level2">
+<section id="manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="manipulating-a-folder-hierarchy-using-a-heavy-client-from-a-desktop-or-server">Manipulating a folder hierarchy using a heavy client from a desktop or server</h2>
 <div id="fig-datapack" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -456,12 +458,12 @@ Figure&nbsp;9: A heavy client may create and mutate very large datasets containi
 <p>A desktop or server client has direct access to the file system and presumably the entire original folder hierarchy (or may retrieve it). In such environments, multiple processes may alter folder and file content in ways without any knowledge of the associated VMDAG. There are multiple options for tracking file and folder mutation for updating a VMDAG:</p>
 <ol type="1">
 <li><p>Recompute the MDAG for each version. The simplest approach which would be fine for relatively small hierarchies (hundreds of files), but could get expensive as the managed hierarchy grows.</p></li>
-<li><p>File tagging. Each file and folder can be assigned a persistent unique identifier (like a SID in DataONE) as an extended attribute. The xattr will remain attached to the file through mutations and moves, and could thus provide the basis for computing the change operations for a new MDAG version.</p></li>
+<li><p>File tagging. Each file and folder can be assigned a persistent unique identifier (like a SID in DataONE) as an extended attribute. The xattr will remain attached to the file through mutations and moves, and could thus provide the basis for computing the change operations for a new MDAG version. Extended attributes are available in Linux and MacOS, though is more challenging to implement on Windows.</p></li>
 <li><p>File system hooks. Requires file system level operations to trigger additional calls to perform corresponding VMDAG operations. This could be implemented in FUSE for example, but cross platform implementation may be more involved (e.g.&nbsp;FUSE for linux, MacOS; WinFsp for Windows).</p></li>
 <li><p>Watcher. A file system watcher such as <code>watchdog</code> can be efficient and work cross platform, though changes that occurred when the watch service was not running would be missed, and so would require a complete recalculation of the folder hierarchy which could be expensive for large hierarchies.</p></li>
 </ol>
-<p>Recommendation is to implement option 1 and extend to option 2 when needed.</p>
-<p>Core operations of a command line client may be conceptually similar to a <code>git</code> session. For example using a cli called “dpack”:</p>
+<p>Recommendation is to implement option 1 and extend to option 2 when needed<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.</p>
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;Option 2 is a little more complex to implement, but would be more efficient for large hierarchies. However, it requires that the client environment support extended attributes which may be a barrier for some users.</p></div></div><p>Core operations of a command line client may be conceptually similar to a <code>git</code> session. For example using a cli called “dpack”:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create framework for managing a dataset identified by the PID dataset_PID. Creates</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># an ORE document and initializes tracking components for the vmdag. Sets up a</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># default system metadata template for components.</span></span>
